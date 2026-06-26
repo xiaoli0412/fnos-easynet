@@ -68,8 +68,8 @@ COPY config/supervisord.conf /etc/supervisord.conf
 # Make scripts executable
 RUN chmod +x /entrypoint.sh
 
-# Create non-root user (supervisord/mihomo need root for TUN, but server can drop privileges)
-RUN addgroup -S app && adduser -S app -G app -h /app
+# Create non-root user (supervisord/mihomo need root for TUN)
+RUN addgroup -S app && adduser -S app -G app -D -h /nonexistent
 
 # Create default config if not exists
 RUN echo "# Default config - will be overridden by mounted config" > /etc/mihomo/.default
