@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # ─────────────────────────────────────────────────────────
 # fnos-easynet - VPN & Proxy for fnOS (飞牛OS)
 # Multi-stage build: mihomo core + Node.js management server
