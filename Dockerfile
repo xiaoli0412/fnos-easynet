@@ -34,12 +34,10 @@ RUN apk add --no-cache \
     && \
     # Install mihomo binary
     ARCH=$(uname -m) && \
-    case "$ARCH" in
-      x86_64) MIHOMO_ARCH="amd64" ;;
-      aarch64) MIHOMO_ARCH="arm64" ;;
-      armv7l) MIHOMO_ARCH="armv7" ;;
-      *) MIHOMO_ARCH="amd64" ;; \
-    esac && \
+    if [ "$ARCH" = "x86_64" ]; then MIHOMO_ARCH="amd64"; \
+    elif [ "$ARCH" = "aarch64" ]; then MIHOMO_ARCH="arm64"; \
+    elif [ "$ARCH" = "armv7l" ]; then MIHOMO_ARCH="armv7"; \
+    else MIHOMO_ARCH="amd64"; fi && \
     MIHOMO_VERSION="v1.18.10" && \
     curl -fsSL "https://github.com/MetaCubeX/mihomo/releases/download/${MIHOMO_VERSION}/mihomo-linux-${MIHOMO_ARCH}-${MIHOMO_VERSION}.gz" \
     -o /tmp/mihomo.gz && \
