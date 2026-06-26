@@ -17,7 +17,7 @@
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/your-username/fnos-easynet.git
+git clone https://github.com/xiaoli0412/fnos-easynet.git
 cd fnos-easynet
 ```
 
@@ -61,7 +61,7 @@ mkdir -p /vol1/docker/fnos-easynet
 cd /vol1/docker/fnos-easynet
 
 # 克隆仓库
-git clone https://github.com/your-username/fnos-easynet.git .
+git clone https://github.com/xiaoli0412/fnos-easynet.git .
 
 # 编辑配置
 vi config/config.yaml
@@ -105,7 +105,7 @@ docker compose up -d
 - 需要 `NET_ADMIN` 权限
 - 适合全局代理需求
 
-> **注意**: TUN 模式需要容器具有 `NET_ADMIN` 和 `SYS_ADMIN` 权限。docker-compose.yml 已默认配置。
+> **注意**: TUN 模式需要容器具有 `NET_ADMIN` 权限。docker-compose.yml 已默认配置。
 
 ## 旁路由模式
 
