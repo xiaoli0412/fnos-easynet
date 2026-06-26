@@ -1,0 +1,16 @@
+# Docker build context exclusions
+.git/
+.gitignore
+.env
+.env.example
+.env.local
+README.md
+LICENSE
+*.md
+.vscode/
+.idea/
+data/
+logs/
+node_modules/
+docker-compose.yml
+.DS_Store

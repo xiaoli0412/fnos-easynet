@@ -1,0 +1,129 @@
+# fnos-easynet 默认配置
+# 请根据你的需求修改此配置，或通过 Web UI 管理
+
+# ── 基础设置 ──
+mixed-port: 7890
+socks-port: 7891
+allow-lan: true
+bind-address: '*'
+mode: rule
+log-level: info
+unified-delay: true
+geodata-mode: true
+tcp-concurrent: true
+
+# ── 控制面板 ──
+external-controller: 0.0.0.0:9097
+external-ui: /usr/share/metacubexd
+# secret: ""  # 设置 API 访问密钥 (推荐)
+
+# ── 全局 TLS ──
+global-client-fingerprint: chrome
+
+# ── GEO 数据库 ──
+geodata-loader: standard
+geo-auto-update: true
+geo-update-interval: 24
+
+# ── 缓存 ──
+find-process-mode: strict
+profile:
+  store-selected: true
+  store-fake-ip: true
+
+# ── DNS 设置 ──
+dns:
+  enable: true
+  listen: 0.0.0.0:1053
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - '*.lan'
+    - '*.local'
+    - 'localhost'
+    - '+.stun.*.*'
+    - '+.stun.*.*.*'
+    - 'dns.msftncsi.com'
+    - 'www.msftncsi.com'
+    - 'www.msftconnecttest.com'
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:
+    - 'https://dns.alidns.com/dns-query'
+    - 'https://doh.pub/dns-query'
+  fallback:
+    - 'https://dns.cloudflare.com/dns-query'
+    - 'https://dns.google/dns-query'
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    ipcidr:
+      - 240.0.0.0/4
+
+# ── TUN 设置 (通过 Web UI 切换) ──
+tun:
+  enable: false
+  stack: system
+  auto-route: true
+  auto-detect-interface: true
+  dns-hijack:
+    - any:53
+
+# ── 代理提供者 ──
+# 取消注释并填入你的订阅链接
+# proxy-providers:
+#   my-sub:
+#     type: http
+#     url: "https://your-subscription-url.com/link"
+#     interval: 3600
+#     path: ./providers/my-sub.yaml
+#     health-check:
+#       enable: true
+#       interval: 600
+#       url: https://www.gstatic.com/generate_204
+
+# ── 代理组 ──
+proxy-groups:
+  - name: "节点选择"
+    type: select
+    proxies:
+      - 自动选择
+      - 故障转移
+      - DIRECT
+
+  - name: "自动选择"
+    type: url-test
+    tolerance: 50
+    lazy: true
+    url: "https://www.gstatic.com/generate_204"
+    interval: 300
+    proxies: []
+
+  - name: "故障转移"
+    type: fallback
+    url: "https://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    proxies: []
+
+  # ── 可选: 添加更多代理组 ──
+  # - name: "流媒体"
+  #   type: select
+  #   proxies:
+  #     - 节点选择
+  #     - DIRECT
+
+# ── 规则 ──
+rules:
+  # 本地地址直连
+  - GEOIP,lan,DIRECT,no-resolve
+  - GEOIP,private,DIRECT,no-resolve
+  # 国内直连
+  - GEOSITE,cn,DIRECT
+  - GEOIP,cn,DIRECT
+  # 广告拦截
+  - GEOSITE,category-ads-all,REJECT
+  # 其余走代理
+  - MATCH,节点选择

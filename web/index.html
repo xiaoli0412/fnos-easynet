@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>fnos-easynet | 飞牛OS 网络代理管理</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <div class="logo-icon">E</div>
+          <div>
+            <div class="logo-text">EasyNet</div>
+            <div class="logo-sub">fnOS 网络代理</div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">仪表盘</span>
+        </div>
+        <div class="nav-item" data-page="proxies">
+          <span class="nav-icon">🌐</span>
+          <span class="nav-text">代理节点</span>
+        </div>
+        <div class="nav-item" data-page="subscriptions">
+          <span class="nav-icon">📋</span>
+          <span class="nav-text">订阅管理</span>
+        </div>
+        <div class="nav-item" data-page="settings">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-text">系统设置</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        fnos-easynet v1.0.0<br>
+        Powered by mihomo
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+      <!-- ═══ Dashboard Page ═══ -->
+      <div id="page-dashboard" class="page active">
+        <div class="page-header">
+          <h1 class="page-title">仪表盘</h1>
+          <p class="page-subtitle">实时监控网络代理状态与流量</p>
+        </div>
+
+        <!-- fnOS Banner -->
+        <div class="fnos-banner">
+          <span class="banner-icon">🐂</span>
+          <div class="banner-text">
+            <strong>fnos-easynet</strong> — 为飞牛OS量身打造的网络代理方案。
+            支持 TUN 透明代理与 HTTP/SOCKS5 代理模式，一键切换，全局加速。
+          </div>
+        </div>
+
+        <!-- Status Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">运行模式</div>
+            <div id="current-mode" class="mode-badge mode-proxy">代理模式</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">下载速度</div>
+            <div id="download-speed" class="stat-value speed">0 B/s</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">上传速度</div>
+            <div id="upload-speed" class="stat-value upload">0 B/s</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">活跃连接</div>
+            <div id="active-connections" class="stat-value">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">运行时间</div>
+            <div id="uptime" class="stat-value">0分 0秒</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">内核版本</div>
+            <div id="mihomo-version" class="stat-value" style="font-size:14px">-</div>
+          </div>
+        </div>
+
+        <!-- Mode Switcher -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">代理模式切换</span>
+          </div>
+          <div class="mode-switcher">
+            <div id="btn-proxy" class="mode-btn active" onclick="ModeModule.switchMode('proxy')">
+              <div class="mode-icon">🔀</div>
+              <div class="mode-name">代理模式</div>
+              <div class="mode-desc">HTTP/SOCKS5 代理，应用层代理，兼容性最佳</div>
+            </div>
+            <div id="btn-tun" class="mode-btn" onclick="ModeModule.switchMode('tun')">
+              <div class="mode-icon">🛡️</div>
+              <div class="mode-name">TUN 模式</div>
+              <div class="mode-desc">虚拟网卡透明代理，全局接管所有网络流量</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Traffic Chart -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">实时流量</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="traffic-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Active Connections -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">活跃连接</span>
+            <button class="btn btn-sm btn-outline" onclick="StatusModule.refresh()">刷新</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>目标</th>
+                <th>协议</th>
+                <th>链路</th>
+                <th>流量</th>
+                <th>规则</th>
+              </tr>
+            </thead>
+            <tbody id="connections-body">
+              <tr><td colspan="5" class="empty-state">加载中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ Proxies Page ═══ -->
+      <div id="page-proxies" class="page">
+        <div class="page-header">
+          <h1 class="page-title">代理节点</h1>
+          <p class="page-subtitle">管理和切换代理节点，测试延迟</p>
+        </div>
+        <div id="proxies-list">
+          <div class="empty-state">加载中...</div>
+        </div>
+      </div>
+
+      <!-- ═══ Subscriptions Page ═══ -->
+      <div id="page-subscriptions" class="page">
+        <div class="page-header">
+          <h1 class="page-title">订阅管理</h1>
+          <p class="page-subtitle">管理代理订阅链接，自动更新节点</p>
+        </div>
+
+        <form id="add-sub-form" class="add-sub-form">
+          <input type="text" id="sub-name" placeholder="订阅名称（可选）" style="max-width:200px">
+          <input type="url" id="sub-url" placeholder="订阅链接 URL" required style="flex:1">
+          <button type="submit" class="btn btn-primary">添加订阅</button>
+        </form>
+
+        <div id="subscriptions-list">
+          <div class="empty-state">加载中...</div>
+        </div>
+      </div>
+
+      <!-- ═══ Settings Page ═══ -->
+      <div id="page-settings" class="page">
+        <div class="page-header">
+          <h1 class="page-title">系统设置</h1>
+          <p class="page-subtitle">fnos-easynet 系统配置与说明</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">关于</span>
+          </div>
+          <div style="color:var(--text-secondary);font-size:13px;line-height:1.8">
+            <p><strong>fnos-easynet</strong> 是专为飞牛OS (fnOS) 设计的 Docker 化网络代理解决方案。</p>
+            <p style="margin-top:8px">核心基于 <a href="https://github.com/MetaCubeX/mihomo" style="color:var(--accent)" target="_blank">mihomo</a> (Clash Meta)，提供高性能的多协议代理支持。</p>
+            <p style="margin-top:12px"><strong>代理模式：</strong>通过 HTTP (7890) / SOCKS5 (7891) 端口提供应用层代理，需在应用中手动配置代理地址。适合单个应用的代理需求。</p>
+            <p style="margin-top:8px"><strong>TUN 模式：</strong>创建虚拟网卡接管系统全部网络流量，实现透明代理。无需逐个应用配置，全局生效。需要 NET_ADMIN 权限。</p>
+            <p style="margin-top:12px"><strong>飞牛OS适配：</strong>本方案针对飞牛OS (基于 Debian) 优化，支持通过 Docker Compose 一键部署，完美兼容飞牛OS的Docker管理界面。</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">端口说明</span>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>端口</th><th>协议</th><th>说明</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>9090</td><td>HTTP</td><td>管理面板 (本界面)</td></tr>
+              <tr><td>7890</td><td>HTTP/SOCKS5</td><td>混合代理端口 (代理模式)</td></tr>
+              <tr><td>7891</td><td>SOCKS5</td><td>SOCKS5 代理端口</td></tr>
+              <tr><td>9097</td><td>HTTP</td><td>mihomo RESTful API</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">飞牛OS 部署指南</span>
+          </div>
+          <div style="color:var(--text-secondary);font-size:13px;line-height:1.8">
+            <p><strong>1. 准备配置文件</strong></p>
+            <p>在飞牛OS文件管理中创建目录 <code style="background:var(--bg-input);padding:2px 6px;border-radius:4px">/vol1/docker/fnos-easynet</code>，将 docker-compose.yml 和 config.yaml 放入该目录。</p>
+            <p style="margin-top:8px"><strong>2. 编辑订阅配置</strong></p>
+            <p>编辑 <code style="background:var(--bg-input);padding:2px 6px;border-radius:4px">config/config.yaml</code>，将 <code style="background:var(--bg-input);padding:2px 6px;border-radius:4px">proxy-providers</code> 中的 URL 替换为你的订阅链接。</p>
+            <p style="margin-top:8px"><strong>3. 启动容器</strong></p>
+            <p>通过 SSH 进入目录执行 <code style="background:var(--bg-input);padding:2px 6px;border-radius:4px">docker compose up -d</code>，或在飞牛OS Docker管理界面导入 Compose 配置。</p>
+            <p style="margin-top:8px"><strong>4. 访问面板</strong></p>
+            <p>浏览器打开 <code style="background:var(--bg-input);padding:2px 6px;border-radius:4px">http://飞牛IP:9090</code> 即可进入管理面板。</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

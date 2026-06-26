@@ -1,0 +1,76 @@
+# ─────────────────────────────────────────────────────────
+# fnos-easynet - Docker Compose for fnOS (飞牛OS)
+# ─────────────────────────────────────────────────────────
+# 使用方法:
+#   1. 将此文件放入飞牛OS的Docker项目目录
+#   2. 编辑 config/config.yaml 填入你的订阅配置
+#   3. 执行: docker compose up -d
+#   4. 访问: http://飞牛IP:9090
+# ─────────────────────────────────────────────────────────
+
+services:
+  fnos-easynet:
+    build: .
+    image: ghcr.io/fnos-easynet/fnos-easynet:latest
+    container_name: fnos-easynet
+    restart: unless-stopped
+    # network_mode: host  # 可选: 使用主机网络模式 (TUN模式推荐)
+    ports:
+      - "9090:9090"   # Web管理面板
+      - "7890:7890"   # HTTP/SOCKS5 混合代理
+      - "7891:7891"   # SOCKS5 代理
+      - "9097:9097"   # mihomo RESTful API
+    volumes:
+      # 配置文件目录 (请提前准备好 config.yaml)
+      - ./config:/etc/mihomo
+      # 数据持久化 (订阅信息等)
+      - ./data:/data
+      # 日志
+      - ./logs:/var/log/mihomo
+    environment:
+      - TZ=Asia/Shanghai
+      - SERVER_PORT=9090
+    # TUN 模式需要以下权限
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    # 如果使用 host 网络模式，注释掉上面的 ports，取消注释下面的
+    # network_mode: host
+    # 系统调优
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv6.conf.all.forwarding=1
+    # 资源限制 (可选，根据飞牛NAS硬件调整)
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    # 日志配置
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ─── 可选: 旁路由模式 (取消注释以启用) ───
+  # 旁路由模式下，将飞牛OS的网关指向此容器的IP
+  # 局域网其他设备也需将网关指向飞牛OS的IP
+  #
+  # fnos-easynet-gateway:
+  #   image: ghcr.io/fnos-easynet/fnos-easynet:latest
+  #   container_name: fnos-easynet-gw
+  #   restart: unless-stopped
+  #   network_mode: host
+  #   cap_add:
+  #     - NET_ADMIN
+  #     - NET_RAW
+  #     - SYS_ADMIN
+  #   volumes:
+  #     - ./config:/etc/mihomo
+  #     - ./data:/data
+  #   environment:
+  #     - TZ=Asia/Shanghai
+  #   sysctls:
+  #     - net.ipv4.ip_forward=1
